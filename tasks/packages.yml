@@ -1,0 +1,73 @@
+---
+
+- name: Packages pinning
+  template: >
+    src=pinning.j2
+    dest=/etc/apt/preferences.d/php
+  sudo: yes
+
+- name: Add dotdeb repositories key
+  apt_key: >
+    url=http://www.dotdeb.org/dotdeb.gpg
+    state=present
+  sudo: yes
+
+- name: Add repositories
+  apt_repository: >
+    repo="{{ item }}"
+    state=present
+    update_cache=yes
+  with_items:
+    - deb http://packages.dotdeb.org {{ ansible_distribution_release }} all
+  sudo: yes
+
+- name: Add repositories for php 5.5
+  apt_repository: >
+    repo="{{ item }}"
+    state=present
+    update_cache=yes
+  with_items:
+    - deb http://packages.dotdeb.org {{ ansible_distribution_release }}-php55 all
+  when: lwiesel_php_version == 5.5
+  sudo: yes
+
+- name: Remove repositories for php 5.5
+  apt_repository: >
+    repo="{{ item }}"
+    state=absent
+    update_cache=yes
+  with_items:
+    - deb http://packages.dotdeb.org {{ ansible_distribution_release }}-php55 all
+  when: not lwiesel_php_version == 5.5
+  sudo: yes
+
+- name: Add repositories for php 5.6
+  apt_repository: >
+    repo="{{ item }}"
+    state=present
+    update_cache=yes
+  with_items:
+    - deb http://packages.dotdeb.org {{ ansible_distribution_release }}-php56 all
+  when: lwiesel_php_version == 5.6
+  sudo: yes
+
+- name: Remove repositories for php 5.6
+  apt_repository: >
+    repo="{{ item }}"
+    state=absent
+    update_cache=yes
+  with_items:
+    - deb http://packages.dotdeb.org {{ ansible_distribution_release }}-php56 all
+  when: not lwiesel_php_version == 5.6
+  sudo: yes
+
+- name: Install packages
+  apt: >
+    name={{ item }}
+    state=latest
+    force=yes
+  with_items:
+    - php5-common
+    - php5-cli
+    - php5-dev
+  sudo: yes

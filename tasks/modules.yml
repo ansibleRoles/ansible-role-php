@@ -1,0 +1,26 @@
+---
+
+# Gather facts about already enabled modules
+- name: modules enabled
+  shell: >
+    php -m
+  register: lwiesel_php_modules_enabled_result
+  sudo: yes
+
+- set_fact:
+    lwiesel_php_modules_enabled: "{{ lwiesel_php_modules_enabled_result.stdout_lines|intersect(lwiesel_php_modules_available) }}"
+
+# Install & remove modules
+- name: Install modules packages
+  apt: >
+    name={{ item }}
+    state=present
+  with_items: lwiesel_php_modules|intersect(lwiesel_php_modules_available)|difference(lwiesel_php_modules_enabled)|map('regex_replace','^(.*)$','php5-\\1')|list
+  sudo: yes
+
+- name: Remove unused modules packages
+  apt: >
+    name={{ item }}
+    state=absent
+  with_items: lwiesel_php_modules_enabled|difference(lwiesel_php_modules)|map('regex_replace','^(.*)$','php5-\\1')|list
+  sudo: yes

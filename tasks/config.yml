@@ -1,0 +1,5 @@
+- name: Set php configuration
+  template: >
+    src={{ lwiesel_php_conf_template }}
+    dest=/etc/php5/cli/conf.d/100-conf.ini
+  sudo: yes
